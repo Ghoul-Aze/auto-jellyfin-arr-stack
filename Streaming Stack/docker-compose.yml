@@ -1,0 +1,112 @@
+services:
+
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    #networks:
+    #  - arr-shared
+    volumes:
+      - /media/arr/jellyfin/config:/config
+      - /media/arr/sonarr/tvseries:/data/tvshows
+      - /media/arr/radarr/movies:/data/movies
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+      - 1900:1900/udp #optional
+    restart: unless-stopped
+
+  jellyseer:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseer
+    #networks:
+    #  - arr-shared
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Zurich
+    depends_on:
+      - jellyfin
+    ports:
+      - 5055:5055
+    volumes:
+      - /media/arr/jellyseer/config:/app/config
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    network_mode: service:gluetun
+    #networks:
+    #  - arr-shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/sonarr/config:/config
+      - /media/arr/sonarr/tvseries:/tv #optional
+      - /media/arr/qbittorrent/downloads:/downloads #optional
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    network_mode: service:gluetun
+    #networks:
+    #  - arr-shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/radarr/data:/config
+      - /media/arr/movies:/movies
+      - /media/arr/download-client-downloads:/downloads
+    restart: unless-stopped
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    network_mode: service:gluetun
+    #networks:
+    #  - arr-shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /media/arr/lidarr/config:/config
+      - /media/arr/lidarr/music:/music #optional
+      - /media/arr/qbittorrent/downloads:/downloads #optional
+    restart: unless-stopped
+
+  Prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: service:gluetun
+    #networks:
+    #  - arr-shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/prowlarr/data:/config
+    restart: unless-stopped
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    network_mode: service:gluetun
+    #networks:
+    #  - arr-shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/bazarr/config:/config
+      - /media/arr/radarr/movies:/movies #optional
+      - /media/arr/sonarr/tvseries:/tv #optional
+      - /media/arr/sonarr/anime:/anime
+    restart: unless-stopped

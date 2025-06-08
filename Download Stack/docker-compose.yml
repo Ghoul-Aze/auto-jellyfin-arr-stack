@@ -1,0 +1,42 @@
+services:
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: service:gluetun
+    networks:
+      - arr-shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+      - WEBUI_PORT=8181
+      - TORRENTING_PORT=6881
+    volumes:
+      - /media/arr/qbittorrent/config:/config
+      - /media/arr/qbittorrent/downloads:/downloads
+    restart: unless-stopped
+
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    ports:
+      - 9696:9696 #prowlarr
+      - 7878:7878 #radarr
+      - 8989:8989 #sonarr
+      - 6767:6767 #bazarr
+      - 8686:8686 #lidarr
+      - 8787:8787 #readarr
+      - 8181:8181 #qbittorrent
+      - 6881:6881 #qbittorrent
+      - 6881:6881/udp #qbittorrent
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=<your vpn user>
+      - OPENVPN_PASSWORD=<your vpn password>
+      - SERVER_COUNTRIES=Netherlands
