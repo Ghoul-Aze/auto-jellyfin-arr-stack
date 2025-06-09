@@ -1,11 +1,24 @@
 services:
 
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+      - AUTO_UPDATE=true #optional
+    volumes:
+      - /media/arr/jackett:/config
+      - /media/arr/jackett/downloads:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+
   qbittorrent:
     image: linuxserver/qbittorrent
     container_name: qbittorrent
     network_mode: service:gluetun
-    networks:
-      - arr-shared
     environment:
       - PUID=1000
       - PGID=1000
@@ -16,30 +29,3 @@ services:
       - /media/arr/qbittorrent/config:/config
       - /media/arr/qbittorrent/downloads:/downloads
     restart: unless-stopped
-
-  gluetun:
-    image: qmcgaw/gluetun
-    container_name: gluetun
-    ports:
-      - 9696:9696 #prowlarr
-      - 7878:7878 #radarr
-      - 8989:8989 #sonarr
-      - 6767:6767 #bazarr
-      - 8686:8686 #lidarr
-      - 8787:8787 #readarr
-      - 8181:8181 #qbittorrent
-      - 6881:6881 #qbittorrent
-      - 6881:6881/udp #qbittorrent
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    environment:
-      - VPN_SERVICE_PROVIDER=protonvpn
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PUBLIC_KEY=$wgPublicKey
-      - WIREGUARD_PRIVATE_KEY=$wgPrivateKey
-      - WIREGUARD_ENDPOINT_IP=$endpointIP
-      - WIREGUARD_ADDRESSES=$wgAddresses
-      - SERVER_COUNTRIES=Netherlands
-
