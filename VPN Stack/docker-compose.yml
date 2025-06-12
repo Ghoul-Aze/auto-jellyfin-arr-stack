@@ -10,9 +10,9 @@ services:
       - /media/arr/lidarr/music:/data/music
     ports:
       - 8096:8096
-      - 8920:8920 #optional
-      - 7359:7359/udp #optional
-      - 1900:1900/udp #optional
+      - 8920:8920
+      - 7359:7359/udp
+      - 1900:1900/udp
     restart: unless-stopped
 
   jellyseer:
@@ -39,8 +39,8 @@ services:
       - TZ=Europe/Zurich
     volumes:
       - /media/arr/sonarr/config:/config
-      - /media/arr/sonarr/tvseries:/tv #optional
-      - /media/arr/qbittorrent/downloads:/downloads #optional
+      - /media/arr/sonarr/tvseries:/tv
+      - /media/arr/qbittorrent/downloads:/downloads
     restart: unless-stopped
 
   radarr:
@@ -53,8 +53,9 @@ services:
       - TZ=Europe/Zurich
     volumes:
       - /media/arr/radarr/data:/config
+      - /media/arr/radarr/backup:/data/Backup
       - /media/arr/movies:/movies
-      - /media/arr/download-client-downloads:/downloads
+      - /media/arr/qbittorrent/downloads:/downloads
     restart: unless-stopped
 
   lidarr:
@@ -64,11 +65,11 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Etc/UTC
+      - TZ=Europe/Zurich
     volumes:
       - /media/arr/lidarr/config:/config
-      - /media/arr/lidarr/music:/music #optional
-      - /media/arr/qbittorrent/downloads:/downloads #optional
+      - /media/arr/lidarr/music:/music
+      - /media/arr/qbittorrent/downloads:/downloads
     restart: unless-stopped
 
   Prowlarr:
@@ -93,8 +94,8 @@ services:
       - TZ=Europe/Zurich
     volumes:
       - /media/arr/bazarr/config:/config
-      - /media/arr/radarr/movies:/movies #optional
-      - /media/arr/sonarr/tvseries:/tv #optional
+      - /media/arr/radarr/movies:/movies
+      - /media/arr/sonarr/tvseries:/tv
       - /media/arr/sonarr/anime:/anime
     restart: unless-stopped
 
@@ -110,7 +111,6 @@ services:
       - 8787:8787 #readarr
       - 8181:8181 #qbittorrent
       - 6881:6881 #qbittorrent
-      - 6881:6881/udp #qbittorrent
     cap_add:
       - NET_ADMIN
     devices:
@@ -148,3 +148,30 @@ services:
       gluetun:
         condition: service_healthy
     restart: unless-stopped
+
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/Zurich
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: homarr
+    hostname: homarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - ./homarr/configs:/app/data/configs
+      - ./homarr/icons:/app/public/icons
+    ports:
+      - 7575:7575
