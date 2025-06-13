@@ -3,6 +3,9 @@ services:
   jellyfin:
     image: jellyfin/jellyfin
     container_name: jellyfin
+    networks:
+      - local-jellyfin
+      - shared
     volumes:
       - /media/arr/jellyfin/config:/config
       - /media/arr/sonarr/tvseries:/data/tvshows
@@ -18,6 +21,9 @@ services:
   jellyseer:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseer
+    networks:
+      - local-jellyseer
+      - shared
     environment:
       - LOG_LEVEL=debug
       - TZ=Europe/Zurich
@@ -32,7 +38,10 @@ services:
   sonarr:
     image: linuxserver/sonarr
     container_name: sonarr
-    network_mode: "service:gluetun"
+    # network_mode: "service:gluetun"
+    networks:
+      - local-sonarr
+      - shared
     environment:
       - PUID=1000
       - PGID=1000
@@ -41,12 +50,17 @@ services:
       - /media/arr/sonarr/config:/config
       - /media/arr/sonarr/tvseries:/tv
       - /media/arr/qbittorrent/downloads:/downloads
+    ports:
+      - 8989:8989
     restart: unless-stopped
 
   radarr:
     image: linuxserver/radarr
     container_name: radarr
-    network_mode: "service:gluetun"
+    # network_mode: "service:gluetun"
+    networks:
+      - local-radarr
+      - shared
     environment:
       - PUID=1000
       - PGID=1000
@@ -56,12 +70,17 @@ services:
       - /media/arr/radarr/backup:/data/Backup
       - /media/arr/movies:/movies
       - /media/arr/qbittorrent/downloads:/downloads
+    ports:
+      - 7878:7878
     restart: unless-stopped
 
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
     container_name: lidarr
-    network_mode: "service:gluetun"
+    # network_mode: "service:gluetun"
+    networks:
+      - local-lidarr
+      - shared
     environment:
       - PUID=1000
       - PGID=1000
@@ -70,24 +89,34 @@ services:
       - /media/arr/lidarr/config:/config
       - /media/arr/lidarr/music:/music
       - /media/arr/qbittorrent/downloads:/downloads
+    ports:
+      - 8686:8686
     restart: unless-stopped
 
   Prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
-    network_mode: "service:gluetun"
+    # network_mode: "service:gluetun"
+    networks:
+      - local-prowlarr
+      - shared
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Zurich
     volumes:
       - /media/arr/prowlarr/data:/config
+    ports:
+      - 9696:9696
     restart: unless-stopped
 
   bazarr:
     image: linuxserver/bazarr
     container_name: bazarr
-    network_mode: "service:gluetun"
+    # network_mode: "service:gluetun"
+    networks:
+      - local-bazarr
+      - shared
     environment:
       - PUID=1000
       - PGID=1000
@@ -97,21 +126,27 @@ services:
       - /media/arr/radarr/movies:/movies
       - /media/arr/sonarr/tvseries:/tv
       - /media/arr/sonarr/anime:/anime
+    ports:
+      - 6767:6767
     restart: unless-stopped
 
   gluetun:
     image: qmcgaw/gluetun
     container_name: gluetun
+    networks:
+      - local-gluetun
+      - shared
     ports:
-      - 9696:9696 #prowlarr
-      - 7878:7878 #radarr
-      - 8989:8989 #sonarr
-      - 6767:6767 #bazarr
-      - 8686:8686 #lidarr
-      - 8787:8787 #readarr
-      - 8191:8191 #flaresolverr
+      # - 9696:9696 #prowlarr
+      # - 7878:7878 #radarr
+      # - 8989:8989 #sonarr
+      # - 6767:6767 #bazarr
+      # - 8686:8686 #lidarr
+      # - 8787:8787 #readarr
+      # - 8191:8191 #flaresolverr
       - 8181:8181 #qbittorrent
       - 6881:6881 #qbittorrent
+      - 6881:6881/udp #qbittorrent
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -155,19 +190,26 @@ services:
   flaresolverr:
     image: flaresolverr/flaresolverr:latest
     container_name: flaresolverr
-    network_mode: "service:gluetun"
+    # network_mode: "service:gluetun"
+    networks:
+      - local-flaresolverr
+      - shared
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=Europe/Zurich
+    ports:
+      - 8191:8191
     restart: unless-stopped
 
   homarr:
     image: ghcr.io/ajnart/homarr:latest
     container_name: homarr
     hostname: homarr
-    restart: unless-stopped
+    networks:
+      - local-homarr
+      - shared
     environment:
       - PUID=1000
       - PGID=1000
@@ -177,3 +219,18 @@ services:
       - ./homarr/icons:/app/public/icons
     ports:
       - 7575:7575
+    restart: unless-stopped
+
+networks:
+  local-jellyfin:
+  local-jellyseer:
+  local-sonarr:
+  local-radarr:
+  local-lidarr:
+  local-prowlarr:
+  local-bazarr:
+  local-flaresolverr:
+  local-homarr:
+  local-gluetun:
+  shared:
+    external: false
