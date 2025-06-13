@@ -109,6 +109,7 @@ services:
       - 6767:6767 #bazarr
       - 8686:8686 #lidarr
       - 8787:8787 #readarr
+      - 8191:8191 #flaresolverr
       - 8181:8181 #qbittorrent
       - 6881:6881 #qbittorrent
     cap_add:
@@ -152,13 +153,12 @@ services:
   flaresolverr:
     image: flaresolverr/flaresolverr:latest
     container_name: flaresolverr
+    network_mode: "service:gluetun"
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=Europe/Zurich
-    ports:
-      - 8191:8191
     restart: unless-stopped
 
   homarr:
