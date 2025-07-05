@@ -1,0 +1,123 @@
+services:
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    networks:
+      - local-sonarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/sonarr/config:/config
+      - /media/arr/sonarr/tvseries:/tv
+      - /media/arr/sonarr/anime:/anime
+      - /media/arr/sonarr/backup:/data/Backup
+      - /media/arr/sabnzbd/downloads:/downloads
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    networks:
+      - local-radarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/radarr/data:/config
+      - /media/arr/radarr/backup:/data/Backup
+      - /media/arr/movies:/movies
+      - /media/arr/sabnzbd/downloads:/downloads
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    networks:
+      - local-lidarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/lidarr/config:/config
+      - /media/arr/lidarr/music:/music
+      - /media/arr/sabnzbd/downloads:/downloads
+      - /media/arr/lidarr/backup:/data/Backup
+    ports:
+      - 8686:8686
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    networks:
+      - local-prowlarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/prowlarr/data:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    networks:
+      - local-bazarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/bazarr/config:/config
+      - /media/arr/radarr/movies:/movies
+      - /media/arr/sonarr/tvseries:/tv
+      - /media/arr/sonarr/anime:/anime
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    networks:
+      - local-sabnzbd
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/sabnzbd/config:/config
+      - /media/arr/sabnzbd/downloads/incomplete:/downloads/incomplete
+      - /media/arr/sabnzbd/downloads:/downloads
+
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+
+networks:
+  local-sonarr:
+  local-radarr:
+  local-lidarr:
+  local-prowlarr:
+  local-bazarr:
+  local-sabnzbd:
+  shared:
+    external: true

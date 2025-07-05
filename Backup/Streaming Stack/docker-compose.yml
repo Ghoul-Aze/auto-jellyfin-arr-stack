@@ -1,0 +1,231 @@
+services:
+
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    networks:
+      - local-jellyfin
+      - shared
+    volumes:
+      - /media/arr/jellyfin/config:/config
+      - /media/arr/sonarr/tvseries:/data/tvshows
+      - /media/arr/radarr/movies:/data/movies
+      - /media/arr/lidarr/music:/data/music
+    ports:
+      - 8096:8096
+      - 8920:8920
+      - 7359:7359/udp
+      - 1900:1900/udp
+    restart: unless-stopped
+
+  jellyseer:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseer
+    networks:
+      - local-jellyseer
+      - shared
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Zurich
+    depends_on:
+      - jellyfin
+    ports:
+      - 5055:5055
+    volumes:
+      - /media/arr/jellyseer/config:/app/config
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    network_mode: "service:gluetun" # <-- UNCOMMENT THIS
+    # networks: # <-- REMOVE OR COMMENT OUT THIS BLOCK
+    #   - local-sonarr
+    #   - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/sonarr/config:/config
+      - /media/arr/sonarr/tvseries:/tv
+      - /media/arr/qbittorrent/downloads:/downloads
+    # ports: # <-- REMOVE OR COMMENT OUT THIS BLOCK, access via Gluetun
+    #   - 8989:8989
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    network_mode: "service:gluetun" # <-- UNCOMMENT THIS
+    # networks: # <-- REMOVE OR COMMENT OUT THIS BLOCK
+    #   - local-radarr
+    #   - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/radarr/data:/config
+      - /media/arr/radarr/backup:/data/Backup
+      - /media/arr/movies:/movies
+      - /media/arr/qbittorrent/downloads:/downloads
+    # ports: # <-- REMOVE OR COMMENT OUT THIS BLOCK, access via Gluetun
+    #   - 7878:7878
+    restart: unless-stopped
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    network_mode: "service:gluetun" # <-- UNCOMMENT THIS
+    # networks: # <-- REMOVE OR COMMENT OUT THIS BLOCK
+    #   - local-lidarr
+    #   - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/lidarr/config:/config
+      - /media/arr/lidarr/music:/music
+      - /media/arr/qbittorrent/downloads:/downloads
+    # ports: # <-- REMOVE OR COMMENT OUT THIS BLOCK, access via Gluetun
+    #   - 8686:8686
+    restart: unless-stopped
+
+  Prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: "service:gluetun" # <-- CHANGE THIS BACK!
+    # networks: # <-- REMOVE OR COMMENT OUT THIS BLOCK
+    #   - local-prowlarr
+    #   - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/prowlarr/data:/config
+    # ports: # <-- REMOVE OR COMMENT OUT THIS BLOCK, access via Gluetun
+    #   - 9696:9696
+    restart: unless-stopped
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    network_mode: "service:gluetun" # <-- UNCOMMENT THIS
+    # networks: # <-- REMOVE OR COMMENT OUT THIS BLOCK
+    #   - local-bazarr
+    #   - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - /media/arr/bazarr/config:/config
+      - /media/arr/radarr/movies:/movies
+      - /media/arr/sonarr/tvseries:/tv
+      - /media/arr/sonarr/anime:/anime
+    # ports: # <-- REMOVE OR COMMENT OUT THIS BLOCK, access via Gluetun
+    #   - 6767:6767
+    restart: unless-stopped
+
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    networks:
+      - local-gluetun
+      - shared # Keep shared if other services like Jellyfin need to reach Gluetun
+    ports:
+      - 9696:9696 # Prowlarr UI (access from host) <-- UNCOMMENT
+      - 7878:7878 # Radarr UI (access from host) <-- UNCOMMENT
+      - 8989:8989 # Sonarr UI (access from host) <-- UNCOMMENT
+      - 6767:6767 # Bazarr UI (access from host) <-- UNCOMMENT
+      - 8686:8686 # Lidarr UI (access from host) <-- UNCOMMENT
+      # - 8191:8191 # Flaresolverr if needed through VPN
+      - 8181:8181 # qbittorrent UI (access from host)
+      - 6881:6881 # qbittorrent torrent port (open on VPN)
+      - 6881:6881/udp # qbittorrent torrent port (open on VPN)
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=Netherlands
+    healthcheck:
+      test: ping -c 1 www.google.com || exit 1
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: "service:gluetun" # Keep this
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+      - WEBUI_PORT=8181
+      # - TORRENTING_PORT=6881 # Not needed as you forward 6881 via gluetun
+    volumes:
+      - /media/arr/qbittorrent/config:/config
+      - /media/arr/qbittorrent/downloads:/downloads
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    restart: unless-stopped
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    # network_mode: "service:gluetun"
+    networks:
+      - local-flaresolverr
+      - shared
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/Zurich
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: homarr
+    hostname: homarr
+    networks:
+      - local-homarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - ./homarr/configs:/app/data/configs
+      - ./homarr/icons:/app/public/icons
+    ports:
+      - 7575:7575
+    restart: unless-stopped
+
+networks:
+  local-jellyfin:
+  local-jellyseer:
+  local-sonarr:
+  local-radarr:
+  local-lidarr:
+  local-prowlarr:
+  local-bazarr:
+  local-flaresolverr:
+  local-homarr:
+  local-gluetun:
+  shared:
+    external: false
