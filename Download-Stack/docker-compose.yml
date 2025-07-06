@@ -33,7 +33,7 @@ services:
     volumes:
       - /media/arr/radarr/data:/config
       - /media/arr/radarr/backup:/data/Backup
-      - /media/arr/movies:/movies
+      - /media/arr/radarr/movies:/movies
       - /media/arr/sabnzbd/downloads:/downloads
     ports:
       - 7878:7878
