@@ -18,11 +18,11 @@ services:
       - 1900:1900/udp
     restart: unless-stopped
 
-  jellyseer:
+  jellyseerr:
     image: fallenbagel/jellyseerr:latest
-    container_name: jellyseer
+    container_name: jellyseerr
     networks:
-      - local-jellyseer
+      - local-jellyseerr
       - shared
     environment:
       - LOG_LEVEL=debug
@@ -32,11 +32,36 @@ services:
     ports:
       - 5055:5055
     volumes:
-      - /media/arr/jellyseer/config:/app/config
+      - /media/arr/jellyseerr/config:/app/config
+    restart: unless-stopped
+
+  homarr:
+    image: ghcr.io/homarr-labs/homarr:latest
+    container_name: homarr
+    hostname: homarr
+    networks:
+      - local-homarr
+      - shared
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+      - SECRET_ENCRYPTION_KEY=2e3a56e8c4f4308bc4c8982d5ef5085297536af0a9044e74ea4c506850a7b721
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ./homarr/configs:/app/data/configs
+      - ./homarr/icons:/app/public/icons
+      - ./homarr/data:/data
+    depends_on:
+      - jellyfin
+      - jellyseerr
+    ports:
+      - 7575:7575
     restart: unless-stopped
 
 networks:
   local-jellyfin:
-  local-jellyseer:
+  local-jellyseerr:
+  local-homarr:
   shared:
     external: true

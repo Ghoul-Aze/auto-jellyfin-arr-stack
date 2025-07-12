@@ -39,24 +39,25 @@ services:
       - 7878:7878
     restart: unless-stopped
 
-  lidarr:
-    image: lscr.io/linuxserver/lidarr:latest
-    container_name: lidarr
-    networks:
-      - local-lidarr
-      - shared
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Zurich
-    volumes:
-      - /media/arr/lidarr/config:/config
-      - /media/arr/lidarr/music:/music
-      - /media/arr/sabnzbd/downloads:/downloads
-      - /media/arr/lidarr/backup:/data/Backup
-    ports:
-      - 8686:8686
-    restart: unless-stopped
+# Currently doesn't work because the developer of readarr hasn't built a version of readarr for my infrastructer
+#  readarr:
+#    image: lscr.io/linuxserver/readarr:develop
+#    container_name: readarr
+#    networks:
+#      - local-readarr
+#      - shared
+#    environment:
+#      - PUID=1000
+#      - PGID=1000
+#      - TZ=Europe/Zurich
+#    volumes:
+#      - /media/arr/readarr/config:/config
+#      - /media/arr/readarr/music:/music
+#      - /media/arr/sabnzbd/downloads:/downloads
+#      - /media/arr/readarr/backup:/data/Backup
+#    ports:
+#      - 8686:8686
+#    restart: unless-stopped
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -107,7 +108,6 @@ services:
       - /media/arr/sabnzbd/config:/config
       - /media/arr/sabnzbd/downloads/incomplete:/downloads/incomplete
       - /media/arr/sabnzbd/downloads:/downloads
-
     ports:
       - 8080:8080
     restart: unless-stopped
@@ -115,7 +115,7 @@ services:
 networks:
   local-sonarr:
   local-radarr:
-  local-lidarr:
+#  local-readarr:
   local-prowlarr:
   local-bazarr:
   local-sabnzbd:
