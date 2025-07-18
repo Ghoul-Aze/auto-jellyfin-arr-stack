@@ -13,7 +13,11 @@ services:
     volumes:
       - /media/arr/sonarr/config:/config
       - /media/arr/sonarr/tvseries:/tv
+      - /media/arr/sonarr/tvseriesDE:/tvDE
+      - /media/arr/sonarr/tvseriesFR:/tvFR
       - /media/arr/sonarr/anime:/anime
+      - /media/arr/sonarr/animeDE:/animeDE
+      - /media/arr/sonarr/animeFR:/animeFR
       - /media/arr/sonarr/backup:/data/Backup
       - /media/arr/sabnzbd/downloads:/downloads
     ports:
@@ -34,30 +38,12 @@ services:
       - /media/arr/radarr/data:/config
       - /media/arr/radarr/backup:/data/Backup
       - /media/arr/radarr/movies:/movies
+      - /media/arr/radarr/moviesDE:/moviesDE
+      - /media/arr/radarr/moviesFR:/moviesFR
       - /media/arr/sabnzbd/downloads:/downloads
     ports:
       - 7878:7878
     restart: unless-stopped
-
-# Currently doesn't work because the developer of readarr hasn't built a version of readarr for my infrastructer
-#  readarr:
-#    image: lscr.io/linuxserver/readarr:develop
-#    container_name: readarr
-#    networks:
-#      - local-readarr
-#      - shared
-#    environment:
-#      - PUID=1000
-#      - PGID=1000
-#      - TZ=Europe/Zurich
-#    volumes:
-#      - /media/arr/readarr/config:/config
-#      - /media/arr/readarr/music:/music
-#      - /media/arr/sabnzbd/downloads:/downloads
-#      - /media/arr/readarr/backup:/data/Backup
-#    ports:
-#      - 8686:8686
-#    restart: unless-stopped
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -73,25 +59,6 @@ services:
       - /media/arr/prowlarr/data:/config
     ports:
       - 9696:9696
-    restart: unless-stopped
-
-  bazarr:
-    image: linuxserver/bazarr
-    container_name: bazarr
-    networks:
-      - local-bazarr
-      - shared
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Zurich
-    volumes:
-      - /media/arr/bazarr/config:/config
-      - /media/arr/radarr/movies:/movies
-      - /media/arr/sonarr/tvseries:/tv
-      - /media/arr/sonarr/anime:/anime
-    ports:
-      - 6767:6767
     restart: unless-stopped
 
   sabnzbd:
@@ -112,12 +79,25 @@ services:
       - 8080:8080
     restart: unless-stopped
 
+  profilarr:
+    image: santiagosayshey/profilarr:latest
+    container_name: profilarr
+    networks:
+      - local-profilarr
+      - shared
+    ports:
+        - 6868:6868
+    volumes:
+        - /media/arr/profilarr/config:/config
+    environment:
+        - TZ=Europe/Zurich
+    restart: unless-stopped
+
 networks:
   local-sonarr:
   local-radarr:
-#  local-readarr:
   local-prowlarr:
-  local-bazarr:
+  local-profilarr:
   local-sabnzbd:
   shared:
     external: true

@@ -9,8 +9,11 @@ services:
     volumes:
       - /media/arr/jellyfin/config:/config
       - /media/arr/sonarr/tvseries:/data/tvshows
+      - /media/arr/sonarr/tvseriesDE:/data/tvshowsDE
+      - /media/arr/sonarr/tvseriesFR:/data/tvshowsFR
       - /media/arr/radarr/movies:/data/movies
-      - /media/arr/lidarr/music:/data/music
+      - /media/arr/radarr/moviesDE:/data/moviesDE
+      - /media/arr/radarr/moviesFR:/data/moviesFR
     ports:
       - 8096:8096
       - 8920:8920
@@ -48,7 +51,7 @@ services:
       - TZ=Europe/Zurich
       - SECRET_ENCRYPTION_KEY=2e3a56e8c4f4308bc4c8982d5ef5085297536af0a9044e74ea4c506850a7b721
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./homarr/configs:/app/data/configs
       - ./homarr/icons:/app/public/icons
       - ./homarr/data:/appdata
